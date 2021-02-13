@@ -1,5 +1,5 @@
 {
-  "name": "preclass",
+  "name": "recorded",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,11 +10,11 @@
     "start": "node src/"
   },
   "keywords": [],
-  "author": "erickwendel",
+  "author": "",
   "license": "ISC",
   "devDependencies": {
-    "mocha": "8.2.1",
-    "nyc": "15.1.0",
-    "sinon": "9.2.1"
+    "mocha": "^8.2.1",
+    "nyc": "^15.1.0",
+    "sinon": "^9.2.3"
   }
 }
