@@ -17,11 +17,55 @@ class Pagination {
     }
 
     async handleRequest({ url, page, retries = 1 }) {
+        try {
+            const finalUrl = `${url}?tid=${page}`;
+            const result = await this.request.makeRequest({
+                url: finalUrl,
+                method: 'get',
+                timeout: this.maxRequestTimeout
+            });
 
+            return result;
+        } catch (error) {
+            if(retries === this.maxRetries) {
+                console.error(`[${retries}] max retries reached!`)
+                throw error;
+            }
+            console.error(`[${retries}] an error: [${error.message}] has happend! trying agein in ${this.retryTimeout}ms`);
+            await Pagination.sleep(this.retryTimeout);
+
+            return this.handleRequest({ url, page, retries: retries += 1 })
+        }
     }
 
-    async getPaginated({ url, page }) {
+    static async sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
+    /**
+     * Os generators são usados para trabalhar com dados sob demanda,
+     * precisamos anotar a função com * e usar o yield para returnar os dados sob demanda.
+     *
+     * Quando usamos o yield com o objeto { 0 } terá o retorno de { done: false, value: 0 }
+     * Ex:
+     * const r = getPaginated();
+     * r.next() -> { done: false, value: 0 }
+     * r.next() -> { done: true, value: 0 }
+     *
+     * Quando querermos delegar uma execução (não retornar valor, delegar!)
+     *
+     * yield * função
+     */
+    async * getPaginated({ url, page }) {
+        const result = await this.handleRequest({ url, page });
+        const lastId = result[result.length - 1]?.tid ?? 0;
+
+        if(lastId === 0) return;
+
+        yield result;
+
+        await Pagination.sleep(this.threshold);
+        yield* this.getPaginated({ url, page: lastId });
     }
 }
 
